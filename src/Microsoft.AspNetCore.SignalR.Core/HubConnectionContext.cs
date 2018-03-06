@@ -27,8 +27,6 @@ namespace Microsoft.AspNetCore.SignalR
     public class HubConnectionContext
     {
         private static Action<object> _abortedCallback = AbortConnection;
-        private static readonly Base64Encoder Base64Encoder = new Base64Encoder();
-        private static readonly PassThroughEncoder PassThroughEncoder = new PassThroughEncoder();
 
         private readonly ConnectionContext _connectionContext;
         private readonly ILogger _logger;

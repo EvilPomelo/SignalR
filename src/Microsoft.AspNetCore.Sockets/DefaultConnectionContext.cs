@@ -71,7 +71,8 @@ namespace Microsoft.AspNetCore.Sockets
 
         public override IDuplexPipe Transport { get; set; }
 
-        public TransferMode TransportCapabilities { get; set; }
+        // By default, we assume the connection supports all transfer modes.
+        public TransferMode TransportCapabilities { get; set; } = TransferMode.Binary | TransferMode.Text;
 
         public TransferMode TransferMode { get; set; }
 

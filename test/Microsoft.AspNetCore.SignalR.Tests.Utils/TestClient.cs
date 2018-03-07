@@ -49,7 +49,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
             using (var memoryStream = new MemoryStream())
             {
-                NegotiationProtocol.WriteMessage(new NegotiationMessage(protocol.Name), memoryStream);
+                NegotiationProtocol.WriteMessage(new NegotiationMessage(_protocol.Name), memoryStream);
                 Connection.Application.Output.WriteAsync(memoryStream.ToArray());
             }
         }

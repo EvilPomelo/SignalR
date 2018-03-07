@@ -801,11 +801,14 @@ namespace Microsoft.AspNetCore.SignalR.Client.FunctionalTests
             {
                 foreach (var protocol in HubProtocols)
                 {
-                    foreach (var transport in TransportTypes().SelectMany(t => t))
+                    foreach (var transport in TransportTypes().SelectMany(t => t).Cast<TransportType>())
                     {
                         foreach (var hubPath in HubPaths)
                         {
-                            yield return new object[] { protocol, transport, hubPath };
+                            if (!(protocol is MessagePackHubProtocol) || transport != TransportType.ServerSentEvents)
+                            {
+                                yield return new object[] { protocol, transport, hubPath };
+                            }
                         }
                     }
                 }

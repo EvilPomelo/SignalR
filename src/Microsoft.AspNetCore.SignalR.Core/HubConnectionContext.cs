@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Pipelines;
 using System.Net;
 using System.Runtime.ExceptionServices;
@@ -16,7 +17,6 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Protocols;
 using Microsoft.AspNetCore.SignalR.Core;
 using Microsoft.AspNetCore.SignalR.Internal;
-using Microsoft.AspNetCore.SignalR.Internal.Encoders;
 using Microsoft.AspNetCore.SignalR.Internal.Protocol;
 using Microsoft.AspNetCore.Sockets;
 using Microsoft.AspNetCore.Sockets.Features;
@@ -60,7 +60,7 @@ namespace Microsoft.AspNetCore.SignalR
 
         public string UserIdentifier { get; private set; }
 
-        internal virtual HubProtocolReaderWriter ProtocolReaderWriter { get; set; }
+        internal virtual IHubProtocol Protocol { get; set; }
 
         internal ExceptionDispatchInfo AbortException { get; private set; }
 
@@ -83,7 +83,7 @@ namespace Microsoft.AspNetCore.SignalR
             {
                 // This will internally cache the buffer for each unique HubProtocol/DataEncoder combination
                 // So that we don't serialize the HubMessage for every single connection
-                var buffer = message.WriteMessage(ProtocolReaderWriter);
+                var buffer = message.WriteMessage(Protocol);
                 _connectionContext.Transport.Output.Write(buffer);
 
                 Interlocked.Exchange(ref _lastSendTimestamp, Stopwatch.GetTimestamp());
@@ -154,27 +154,32 @@ namespace Microsoft.AspNetCore.SignalR
                             {
                                 if (NegotiationProtocol.TryParseMessage(buffer, out var negotiationMessage, out consumed, out examined))
                                 {
-                                    var protocol = protocolResolver.GetProtocol(negotiationMessage.Protocol, supportedProtocols, this);
+                                    Protocol = protocolResolver.GetProtocol(negotiationMessage.Protocol, this);
 
                                     var transportCapabilities = Features.Get<IConnectionTransportFeature>()?.TransportCapabilities
                                         ?? throw new InvalidOperationException("Unable to read transport capabilities.");
 
-                                    var dataEncoder = (protocol.Type == ProtocolType.Binary && (transportCapabilities & TransferMode.Binary) == 0)
-                                        ? (IDataEncoder)Base64Encoder
-                                        : PassThroughEncoder;
+                                    var requiredTransferMode = (Protocol.Type == ProtocolType.Binary) ?
+                                        TransferMode.Binary :
+                                        TransferMode.Text;
+
+                                    if((transportCapabilities & requiredTransferMode) == 0)
+                                    {
+                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{requiredTransferMode}' transfer mode.");
+                                    }
 
                                     var transferModeFeature = Features.Get<ITransferModeFeature>() ??
                                         throw new InvalidOperationException("Unable to read transfer mode.");
 
-                                    transferModeFeature.TransferMode =
-                                        (protocol.Type == ProtocolType.Binary && (transportCapabilities & TransferMode.Binary) != 0)
-                                            ? TransferMode.Binary
-                                            : TransferMode.Text;
+                                    transferModeFeature.TransferMode = requiredTransferMode;
 
-                                    ProtocolReaderWriter = new HubProtocolReaderWriter(protocol, dataEncoder);
-                                    _cachedPingMessage = ProtocolReaderWriter.WriteMessage(PingMessage.Instance);
+                                    using (var ms = new MemoryStream())
+                                    {
+                                        Protocol.WriteMessage(PingMessage.Instance, ms);
+                                        _cachedPingMessage = ms.ToArray();
+                                    }
 
-                                    Log.UsingHubProtocol(_logger, protocol.Name);
+                                    Log.UsingHubProtocol(_logger, Protocol.Name);
 
                                     UserIdentifier = userIdProvider.GetUserId(this);
 

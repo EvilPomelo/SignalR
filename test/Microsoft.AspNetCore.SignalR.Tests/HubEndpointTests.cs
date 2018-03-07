@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR.Internal;
-using Microsoft.AspNetCore.SignalR.Internal.Encoders;
 using Microsoft.AspNetCore.SignalR.Internal.Protocol;
 using Microsoft.AspNetCore.SignalR.Tests.HubEndpointTestUtils;
 using Microsoft.AspNetCore.Sockets;
@@ -1419,7 +1418,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             var endPoint = serviceProvider.GetService<HubEndPoint<MethodHub>>();
 
             using (var client1 = new TestClient(protocol: new JsonHubProtocol()))
-            using (var client2 = new TestClient(protocol: new MessagePackHubProtocol(), dataEncoder: new Base64Encoder()))
+            using (var client2 = new TestClient(protocol: new MessagePackHubProtocol()))
             {
                 var endPointLifetime1 = endPoint.OnConnectedAsync(client1.Connection);
                 var endPointLifetime2 = endPoint.OnConnectedAsync(client2.Connection);

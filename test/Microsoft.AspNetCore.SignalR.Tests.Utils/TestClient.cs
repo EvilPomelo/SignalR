@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -9,7 +10,6 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Internal;
-using Microsoft.AspNetCore.SignalR.Internal.Encoders;
 using Microsoft.AspNetCore.SignalR.Internal.Protocol;
 using Microsoft.AspNetCore.Sockets;
 
@@ -18,7 +18,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
     public class TestClient : IDisposable
     {
         private static int _id;
-        private readonly HubProtocolReaderWriter _protocolReaderWriter;
+        private readonly IHubProtocol _protocol;
         private readonly IInvocationBinder _invocationBinder;
         private CancellationTokenSource _cts;
         private Queue<HubMessage> _messages = new Queue<HubMessage>();
@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         public DefaultConnectionContext Connection { get; }
         public Task Connected => ((TaskCompletionSource<bool>)Connection.Metadata["ConnectedTask"]).Task;
 
-        public TestClient(bool synchronousCallbacks = false, IHubProtocol protocol = null, IDataEncoder dataEncoder = null, IInvocationBinder invocationBinder = null, bool addClaimId = false)
+        public TestClient(bool synchronousCallbacks = false, IHubProtocol protocol = null, IInvocationBinder invocationBinder = null, bool addClaimId = false)
         {
             var options = new PipeOptions(readerScheduler: synchronousCallbacks ? PipeScheduler.Inline : null);
             var pair = DuplexPipe.CreateConnectionPair(options, options);
@@ -42,9 +42,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             Connection.User = new ClaimsPrincipal(new ClaimsIdentity(claims));
             Connection.Metadata["ConnectedTask"] = new TaskCompletionSource<bool>();
 
-            protocol = protocol ?? new JsonHubProtocol();
-            dataEncoder = dataEncoder ?? new PassThroughEncoder();
-            _protocolReaderWriter = new HubProtocolReaderWriter(protocol, dataEncoder);
+            _protocol = protocol ?? new JsonHubProtocol();
             _invocationBinder = invocationBinder ?? new DefaultInvocationBinder();
 
             _cts = new CancellationTokenSource();
@@ -143,7 +141,13 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         public async Task<string> SendHubMessageAsync(HubMessage message)
         {
-            var payload = _protocolReaderWriter.WriteMessage(message);
+            byte[] payload;
+            using (var ms = new MemoryStream())
+            {
+                _protocol.WriteMessage(message, ms);
+                payload = ms.ToArray();
+            }
+
             await Connection.Application.Output.WriteAsync(payload);
             return message is HubInvocationMessage hubMessage ? hubMessage.InvocationId : null;
         }
@@ -201,7 +205,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
             try
             {
-                if (_protocolReaderWriter.ReadMessages(result.Buffer, _invocationBinder, out var messages, out consumed, out examined))
+                var messages = new List<HubMessage>();
+                if (_protocol.TryParseMessages(result.Buffer.ToArray(), _invocationBinder, messages))
                 {
                     foreach (var m in messages)
                     {

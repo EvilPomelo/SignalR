@@ -4,5 +4,6 @@
 import baseConfig from "../rollup-base"
 
 export default baseConfig(__dirname, {
+    ["@aspnet/signalr"]: "signalR",
     msgpack5: "msgpack5"
 });

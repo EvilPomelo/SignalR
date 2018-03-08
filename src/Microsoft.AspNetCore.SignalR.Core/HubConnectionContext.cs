@@ -154,7 +154,7 @@ namespace Microsoft.AspNetCore.SignalR
                             {
                                 if (NegotiationProtocol.TryParseMessage(buffer, out var negotiationMessage, out consumed, out examined))
                                 {
-                                    Protocol = protocolResolver.GetProtocol(negotiationMessage.Protocol, this);
+                                    Protocol = protocolResolver.GetProtocol(negotiationMessage.Protocol, supportedProtocols, this);
 
                                     var transportCapabilities = Features.Get<IConnectionTransportFeature>()?.TransportCapabilities
                                         ?? throw new InvalidOperationException("Unable to read transport capabilities.");

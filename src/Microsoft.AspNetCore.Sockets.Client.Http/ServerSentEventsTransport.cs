@@ -26,7 +26,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
         public Task Running { get; private set; } = Task.CompletedTask;
 
-        public TransferMode? Mode { get; private set; }
+        public TransferFormat? Format { get; private set; }
 
         public ServerSentEventsTransport(HttpClient httpClient)
             : this(httpClient, null, null)
@@ -44,17 +44,17 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ServerSentEventsTransport>();
         }
 
-        public Task StartAsync(Uri url, IDuplexPipe application, TransferMode requestedTransferMode, IConnection connection)
+        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
         {
-            if (requestedTransferMode != TransferMode.Binary && requestedTransferMode != TransferMode.Text)
+            if (requestedTransferMode != TransferFormat.Binary && requestedTransferMode != TransferFormat.Text)
             {
                 throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferMode));
             }
 
             _application = application;
-            Mode = TransferMode.Text; // Server Sent Events is a text only transport
+            Format = TransferFormat.Text; // Server Sent Events is a text only transport
 
-            Log.StartTransport(_logger, Mode.Value);
+            Log.StartTransport(_logger, Format.Value);
 
             var sendTask = SendUtils.SendMessages(url, _application, _httpClient, _httpOptions, _transportCts, _logger);
             var receiveTask = OpenConnection(_application, url, _transportCts.Token);

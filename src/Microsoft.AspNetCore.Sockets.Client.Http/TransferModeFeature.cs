@@ -7,6 +7,6 @@ namespace Microsoft.AspNetCore.Sockets.Client
 {
     public class TransferModeFeature : ITransferModeFeature
     {
-        public TransferMode TransferMode { get; set; }
+        public TransferFormat TransferMode { get; set; }
     }
 }

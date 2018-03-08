@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Sockets;
 using Microsoft.Extensions.DependencyInjection;
 using MsgPack.Serialization;
 using SocketsSample.EndPoints;
@@ -58,10 +59,10 @@ namespace SocketsSample
 
             app.UseSignalR(routes =>
             {
-                routes.MapHub<DynamicChat>("/dynamic");
-                routes.MapHub<Chat>("/default");
-                routes.MapHub<Streaming>("/streaming");
-                routes.MapHub<HubTChat>("/hubT");
+                routes.MapHub<DynamicChat>("/dynamic", options => options.Transports = TransportType.LongPolling | TransportType.ServerSentEvents);
+                routes.MapHub<Chat>("/default", options => options.Transports = TransportType.LongPolling | TransportType.ServerSentEvents);
+                routes.MapHub<Streaming>("/streaming", options => options.Transports = TransportType.LongPolling | TransportType.ServerSentEvents);
+                routes.MapHub<HubTChat>("/hubT", options => options.Transports = TransportType.LongPolling | TransportType.ServerSentEvents);
             });
 
             app.UseSockets(routes =>

@@ -160,8 +160,8 @@ namespace Microsoft.AspNetCore.SignalR
                                         ?? throw new InvalidOperationException("Unable to read transport capabilities.");
 
                                     var requiredTransferMode = (Protocol.Type == ProtocolType.Binary) ?
-                                        TransferMode.Binary :
-                                        TransferMode.Text;
+                                        TransferFormat.Binary :
+                                        TransferFormat.Text;
 
                                     if((transportCapabilities & requiredTransferMode) == 0)
                                     {

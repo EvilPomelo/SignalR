@@ -10,8 +10,8 @@ namespace Microsoft.AspNetCore.Sockets.Client
     {
         private static class Log
         {
-            private static readonly Action<ILogger, TransferMode, Exception> _startTransport =
-                LoggerMessage.Define<TransferMode>(LogLevel.Information, new EventId(1, "StartTransport"), "Starting transport. Transfer mode: {transferMode}.");
+            private static readonly Action<ILogger, TransferFormat, Exception> _startTransport =
+                LoggerMessage.Define<TransferFormat>(LogLevel.Information, new EventId(1, "StartTransport"), "Starting transport. Transfer mode: {transferMode}.");
 
             private static readonly Action<ILogger, Exception> _transportStopped =
                 LoggerMessage.Define(LogLevel.Debug, new EventId(2, "TransportStopped"), "Transport stopped.");
@@ -39,7 +39,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
             // EventIds 100 - 106 used in SendUtils
 
-            public static void StartTransport(ILogger logger, TransferMode transferMode)
+            public static void StartTransport(ILogger logger, TransferFormat transferMode)
             {
                 _startTransport(logger, transferMode, null);
             }

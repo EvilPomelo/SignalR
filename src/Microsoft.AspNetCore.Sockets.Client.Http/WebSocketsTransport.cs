@@ -23,7 +23,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
         public Task Running { get; private set; } = Task.CompletedTask;
 
-        public TransferMode? Mode { get; private set; }
+        public TransferFormat? Format { get; private set; }
 
         public WebSocketsTransport()
             : this(null, null)
@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<WebSocketsTransport>();
         }
 
-        public async Task StartAsync(Uri url, IDuplexPipe application, TransferMode requestedTransferMode, IConnection connection)
+        public async Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
         {
             if (url == null)
             {
@@ -68,15 +68,15 @@ namespace Microsoft.AspNetCore.Sockets.Client
                 throw new ArgumentNullException(nameof(application));
             }
 
-            if (requestedTransferMode != TransferMode.Binary && requestedTransferMode != TransferMode.Text)
+            if (requestedTransferMode != TransferFormat.Binary && requestedTransferMode != TransferFormat.Text)
             {
                 throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferMode));
             }
 
             _application = application;
-            Mode = requestedTransferMode;
+            Format = requestedTransferMode;
 
-            Log.StartTransport(_logger, Mode.Value);
+            Log.StartTransport(_logger, Format.Value);
 
             await Connect(url);
 
@@ -213,7 +213,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
         private async Task StartSending(WebSocket socket)
         {
             var webSocketMessageType =
-                Mode == TransferMode.Binary
+                Format == TransferFormat.Binary
                     ? WebSocketMessageType.Binary
                     : WebSocketMessageType.Text;
 

@@ -9,6 +9,6 @@ namespace Microsoft.AspNetCore.Sockets.Features
     {
         IDuplexPipe Transport { get; set; }
 
-        TransferMode TransportCapabilities { get; set; }
+        TransferFormat TransportCapabilities { get; set; }
     }
 }

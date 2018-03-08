@@ -12,17 +12,17 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         private readonly Func<Task> _stopHandler;
         private readonly Func<Task> _startHandler;
 
-        public TransferMode? Mode { get; }
+        public TransferFormat? Format { get; }
         public IDuplexPipe Application { get; private set; }
 
-        public TestTransport(Func<Task> onTransportStop = null, Func<Task> onTransportStart = null, TransferMode transferMode = TransferMode.Text)
+        public TestTransport(Func<Task> onTransportStop = null, Func<Task> onTransportStart = null, TransferFormat transferMode = TransferFormat.Text)
         {
             _stopHandler = onTransportStop ?? new Func<Task>(() => Task.CompletedTask);
             _startHandler = onTransportStart ?? new Func<Task>(() => Task.CompletedTask);
-            Mode = transferMode;
+            Format = transferMode;
         }
 
-        public Task StartAsync(Uri url, IDuplexPipe application, TransferMode requestedTransferMode, IConnection connection)
+        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
         {
             Application = application;
             return _startHandler();

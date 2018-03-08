@@ -72,9 +72,9 @@ namespace Microsoft.AspNetCore.Sockets
         public override IDuplexPipe Transport { get; set; }
 
         // By default, we assume the connection supports all transfer modes.
-        public TransferMode TransportCapabilities { get; set; } = TransferMode.Binary | TransferMode.Text;
+        public TransferFormat TransportCapabilities { get; set; } = TransferFormat.Binary | TransferFormat.Text;
 
-        public TransferMode TransferMode { get; set; }
+        public TransferFormat TransferMode { get; set; }
 
         public void OnHeartbeat(Action<object> action, object state)
         {

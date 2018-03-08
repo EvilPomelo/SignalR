@@ -820,10 +820,10 @@ namespace Microsoft.AspNetCore.Sockets.Tests
         }
 
         [Theory]
-        [InlineData(TransportType.LongPolling, TransferMode.Binary | TransferMode.Text)]
-        [InlineData(TransportType.ServerSentEvents, TransferMode.Text)]
-        [InlineData(TransportType.WebSockets, TransferMode.Binary | TransferMode.Text)]
-        public async Task TransportCapabilitiesSet(TransportType transportType, TransferMode expectedTransportCapabilities)
+        [InlineData(TransportType.LongPolling, TransferFormat.Binary | TransferFormat.Text)]
+        [InlineData(TransportType.ServerSentEvents, TransferFormat.Text)]
+        [InlineData(TransportType.WebSockets, TransferFormat.Binary | TransferFormat.Text)]
+        public async Task TransportCapabilitiesSet(TransportType transportType, TransferFormat expectedTransportCapabilities)
         {
             using (StartLog(out var loggerFactory, LogLevel.Debug))
             {

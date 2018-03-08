@@ -5,6 +5,6 @@ namespace Microsoft.AspNetCore.Sockets.Features
 {
     public interface ITransferModeFeature
     {
-        TransferMode TransferMode { get; set; }
+        TransferFormat TransferMode { get; set; }
     }
 }

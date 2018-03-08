@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application,
-                    TransferMode.Binary, connection: Mock.Of<IConnection>()).OrTimeout();
+                    TransferFormat.Binary, connection: Mock.Of<IConnection>()).OrTimeout();
                 await webSocketsTransport.StopAsync().OrTimeout();
                 await webSocketsTransport.Running.OrTimeout();
             }
@@ -88,7 +88,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application,
-                    TransferMode.Binary, connection: Mock.Of<IConnection>());
+                    TransferFormat.Binary, connection: Mock.Of<IConnection>());
                 pair.Transport.Output.Complete();
                 await webSocketsTransport.Running.OrTimeout(TimeSpan.FromSeconds(10));
             }
@@ -96,9 +96,9 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         [ConditionalTheory]
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
-        [InlineData(TransferMode.Text)]
-        [InlineData(TransferMode.Binary)]
-        public async Task WebSocketsTransportStopsWhenConnectionClosedByTheServer(TransferMode transferMode)
+        [InlineData(TransferFormat.Text)]
+        [InlineData(TransferFormat.Binary)]
+        public async Task WebSocketsTransportStopsWhenConnectionClosedByTheServer(TransferFormat transferMode)
         {
             using (StartLog(out var loggerFactory))
             {
@@ -119,19 +119,19 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         [ConditionalTheory]
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
-        [InlineData(TransferMode.Text)]
-        [InlineData(TransferMode.Binary)]
-        public async Task WebSocketsTransportSetsTransferMode(TransferMode transferMode)
+        [InlineData(TransferFormat.Text)]
+        [InlineData(TransferFormat.Binary)]
+        public async Task WebSocketsTransportSetsTransferMode(TransferFormat transferMode)
         {
             using (StartLog(out var loggerFactory))
             {
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
 
-                Assert.Null(webSocketsTransport.Mode);
+                Assert.Null(webSocketsTransport.Format);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application,
                     transferMode, connection: Mock.Of<IConnection>()).OrTimeout();
-                Assert.Equal(transferMode, webSocketsTransport.Mode);
+                Assert.Equal(transferMode, webSocketsTransport.Format);
 
                 await webSocketsTransport.StopAsync().OrTimeout();
                 await webSocketsTransport.Running.OrTimeout();
@@ -147,7 +147,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    webSocketsTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferMode.Text | TransferMode.Binary, connection: Mock.Of<IConnection>()));
+                    webSocketsTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text | TransferFormat.Binary, connection: Mock.Of<IConnection>()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
                 Assert.Equal("requestedTransferMode", exception.ParamName);

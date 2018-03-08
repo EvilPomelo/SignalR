@@ -327,7 +327,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         [Fact]
         public async Task AcceptsPingMessages()
         {
-            var connection = new TestConnection(TransferMode.Text);
+            var connection = new TestConnection(TransferFormat.Text);
             var hubConnection = new HubConnection(connection,
                 new JsonHubProtocol(), new LoggerFactory());
 

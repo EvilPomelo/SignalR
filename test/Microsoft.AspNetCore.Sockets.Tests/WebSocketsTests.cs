@@ -71,9 +71,9 @@ namespace Microsoft.AspNetCore.Sockets.Tests
         }
 
         [Theory]
-        [InlineData(TransferMode.Text, WebSocketMessageType.Text)]
-        [InlineData(TransferMode.Binary, WebSocketMessageType.Binary)]
-        public async Task WebSocketTransportSetsMessageTypeBasedOnTransferModeFeature(TransferMode transferMode, WebSocketMessageType expectedMessageType)
+        [InlineData(TransferFormat.Text, WebSocketMessageType.Text)]
+        [InlineData(TransferFormat.Binary, WebSocketMessageType.Binary)]
+        public async Task WebSocketTransportSetsMessageTypeBasedOnTransferModeFeature(TransferFormat transferMode, WebSocketMessageType expectedMessageType)
         {
             using (StartLog(out var loggerFactory, LogLevel.Debug))
             {

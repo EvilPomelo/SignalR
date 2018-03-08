@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         private CancellationTokenSource _receiveShutdownToken = new CancellationTokenSource();
         private Task _receiveLoop;
 
-        private TransferMode? _transferMode;
+        private TransferFormat? _transferMode;
 
         public event Action<Exception> Closed;
         public Task Started => _started.Task;
@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
 
         public IFeatureCollection Features { get; } = new FeatureCollection();
 
-        public TestConnection(TransferMode? transferMode = null)
+        public TestConnection(TransferFormat? transferMode = null)
         {
             _transferMode = transferMode;
             _receiveLoop = ReceiveLoopAsync(_receiveShutdownToken.Token);

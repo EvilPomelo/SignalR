@@ -378,12 +378,12 @@ namespace Microsoft.AspNetCore.Sockets.Client
                 await _transport.StartAsync(connectUrl, pair.Application, GetTransferMode(), this);
 
                 // actual transfer mode can differ from the one that was requested so set it on the feature
-                if (!_transport.Mode.HasValue)
+                if (!_transport.Format.HasValue)
                 {
                     // This can happen with custom transports so it should be an exception, not an assert.
                     throw new InvalidOperationException("Transport was expected to set the Mode property after StartAsync, but it has not been set.");
                 }
-                SetTransferMode(_transport.Mode.Value);
+                SetTransferMode(_transport.Format.Value);
             }
             catch (Exception ex)
             {
@@ -393,18 +393,18 @@ namespace Microsoft.AspNetCore.Sockets.Client
             }
         }
 
-        private TransferMode GetTransferMode()
+        private TransferFormat GetTransferMode()
         {
             var transferModeFeature = Features.Get<ITransferModeFeature>();
             if (transferModeFeature == null)
             {
-                return TransferMode.Text;
+                return TransferFormat.Text;
             }
 
             return transferModeFeature.TransferMode;
         }
 
-        private void SetTransferMode(TransferMode transferMode)
+        private void SetTransferMode(TransferFormat transferMode)
         {
             var transferModeFeature = Features.Get<ITransferModeFeature>();
             if (transferModeFeature == null)

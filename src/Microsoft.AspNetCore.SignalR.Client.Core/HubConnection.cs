@@ -119,8 +119,8 @@ namespace Microsoft.AspNetCore.SignalR.Client
 
             var requestedTransferMode =
                 _protocol.Type == ProtocolType.Binary
-                    ? TransferMode.Binary
-                    : TransferMode.Text;
+                    ? TransferFormat.Binary
+                    : TransferFormat.Text;
 
             transferModeFeature.TransferMode = requestedTransferMode;
             await _connection.StartAsync();
@@ -612,7 +612,7 @@ namespace Microsoft.AspNetCore.SignalR.Client
 
         private class TransferModeFeature : ITransferModeFeature
         {
-            public TransferMode TransferMode { get; set; }
+            public TransferFormat TransferMode { get; set; }
         }
     }
 }

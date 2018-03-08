@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         [Theory(Skip = "https://github.com/aspnet/SignalR/issues/1485")]
         [MemberData(nameof(TransportTypesAndTransferModes))]
-        public async Task ConnectionCanSendAndReceiveMessages(TransportType transportType, TransferMode requestedTransferMode)
+        public async Task ConnectionCanSendAndReceiveMessages(TransportType transportType, TransferFormat requestedTransferMode)
         {
             using (StartLog(out var loggerFactory, testName: $"ConnectionCanSendAndReceiveMessages_{transportType.ToString()}"))
             {
@@ -255,10 +255,10 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             }
         }
 
-        private bool IsBase64Encoded(TransferMode transferMode, IConnection connection)
+        private bool IsBase64Encoded(TransferFormat transferMode, IConnection connection)
         {
-            return transferMode == TransferMode.Binary &&
-                connection.Features.Get<ITransferModeFeature>().TransferMode == TransferMode.Text;
+            return transferMode == TransferFormat.Binary &&
+                connection.Features.Get<ITransferModeFeature>().TransferMode == TransferFormat.Text;
         }
 
         public static IEnumerable<object[]> MessageSizesData
@@ -282,7 +282,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var url = _serverFixture.Url + "/echo";
                 var connection = new HttpConnection(new Uri(url), TransportType.WebSockets, loggerFactory);
                 connection.Features.Set<ITransferModeFeature>(
-                    new TransferModeFeature { TransferMode = TransferMode.Binary });
+                    new TransferModeFeature { TransferMode = TransferFormat.Binary });
 
                 try
                 {
@@ -473,8 +473,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             {
                 foreach (var transport in TransportTypes)
                 {
-                    yield return new object[] { transport[0], TransferMode.Text };
-                    yield return new object[] { transport[0], TransferMode.Binary };
+                    yield return new object[] { transport[0], TransferFormat.Text };
+                    yield return new object[] { transport[0], TransferFormat.Binary };
                 }
             }
         }

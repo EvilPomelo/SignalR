@@ -148,7 +148,7 @@
         }
 
         console.log('http://' + document.location.host + '/' + hubRoute);
-        connection = new signalR.HubConnection(hubRoute, { transport: transportType, logger: logger, protocol: protocol });
+        connection = new signalR.HubConnection(hubRoute, options);
         connection.on('Send', function (msg) {
             addLine('message-list', msg);
         });

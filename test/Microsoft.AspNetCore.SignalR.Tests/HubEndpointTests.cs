@@ -1334,7 +1334,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             {
                 var transportFeature = new Mock<IConnectionTransportFeature>();
                 transportFeature.SetupGet(f => f.TransportCapabilities)
-                    .Returns(protocol.Type == ProtocolType.Binary ? TransferMode.Binary : TransferMode.Text);
+                    .Returns(protocol.Type == ProtocolType.Binary ? TransferFormat.Binary : TransferFormat.Text);
                 client.Connection.Features.Set(transportFeature.Object);
 
                 var endPointLifetime = endPoint.OnConnectedAsync(client.Connection);
@@ -1613,7 +1613,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             using (var client = new TestClient(synchronousCallbacks: false, protocol: new MessagePackHubProtocol(msgPackOptions)))
             {
                 var transportFeature = new Mock<IConnectionTransportFeature>();
-                transportFeature.SetupGet(f => f.TransportCapabilities).Returns(TransferMode.Binary);
+                transportFeature.SetupGet(f => f.TransportCapabilities).Returns(TransferFormat.Binary);
                 client.Connection.Features.Set(transportFeature.Object);
                 var endPointLifetime = endPoint.OnConnectedAsync(client.Connection);
 

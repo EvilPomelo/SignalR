@@ -173,11 +173,7 @@ namespace Microsoft.AspNetCore.SignalR
 
                                     transferFormatFeature.TransferFormat = requiredTransferFormat;
 
-                                    using (var ms = new MemoryStream())
-                                    {
-                                        Protocol.WriteMessage(PingMessage.Instance, ms);
-                                        _cachedPingMessage = ms.ToArray();
-                                    }
+                                    _cachedPingMessage = Protocol.WriteToArray(PingMessage.Instance);
 
                                     Log.UsingHubProtocol(_logger, Protocol.Name);
 

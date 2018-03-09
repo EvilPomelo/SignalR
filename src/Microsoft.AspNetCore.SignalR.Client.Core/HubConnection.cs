@@ -276,13 +276,10 @@ namespace Microsoft.AspNetCore.SignalR.Client
         {
             try
             {
-                using (var ms = new MemoryStream())
-                {
-                    _protocol.WriteMessage(hubMessage, ms);
-                    Log.SendInvocation(_logger, hubMessage.InvocationId);
+                var payload = _protocol.WriteToArray(hubMessage);
+                Log.SendInvocation(_logger, hubMessage.InvocationId);
 
-                    await _connection.SendAsync(ms.ToArray(), irq.CancellationToken);
-                }
+                await _connection.SendAsync(payload, irq.CancellationToken);
                 Log.SendInvocationCompleted(_logger, hubMessage.InvocationId);
             }
             catch (Exception ex)
@@ -312,13 +309,10 @@ namespace Microsoft.AspNetCore.SignalR.Client
             {
                 Log.PreparingNonBlockingInvocation(_logger, methodName, args.Length);
 
-                using (var ms = new MemoryStream())
-                {
-                    _protocol.WriteMessage(invocationMessage, ms);
-                    Log.SendInvocation(_logger, invocationMessage.InvocationId);
+                var payload = _protocol.WriteToArray(invocationMessage);
+                Log.SendInvocation(_logger, invocationMessage.InvocationId);
 
-                    await _connection.SendAsync(ms.ToArray(), cancellationToken);
-                }
+                await _connection.SendAsync(payload, cancellationToken);
                 Log.SendInvocationCompleted(_logger, invocationMessage.InvocationId);
             }
             catch (Exception ex)

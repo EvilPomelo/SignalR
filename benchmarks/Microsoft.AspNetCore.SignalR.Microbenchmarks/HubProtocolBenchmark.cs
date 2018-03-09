@@ -52,7 +52,7 @@ namespace Microsoft.AspNetCore.SignalR.Microbenchmarks
                     break;
             }
 
-            _binaryInput = GetBytes(_hubMessage);
+            _binaryInput = _hubProtocol.WriteToArray(_hubMessage);
             _binder = new TestBinder(_hubMessage);
         }
 
@@ -69,13 +69,10 @@ namespace Microsoft.AspNetCore.SignalR.Microbenchmarks
         [Benchmark]
         public void WriteSingleMessage()
         {
-            using (var ms = new MemoryStream())
+            var bytes = _hubProtocol.WriteToArray(_hubMessage);
+            if (bytes.Length != _binaryInput.Length)
             {
-                _hubProtocol.WriteMessage(_hubMessage, ms);
-                if (ms.Length != _binaryInput.Length)
-                {
-                    throw new InvalidOperationException("Failed to write message");
-                }
+                throw new InvalidOperationException("Failed to write message");
             }
         }
 
@@ -91,15 +88,6 @@ namespace Microsoft.AspNetCore.SignalR.Microbenchmarks
             FewArguments = 1,
             ManyArguments = 2,
             LargeArguments = 3
-        }
-
-        private byte[] GetBytes(HubMessage hubMessage)
-        {
-            using (var ms = new MemoryStream())
-            {
-                _hubProtocol.WriteMessage(hubMessage, ms);
-                return ms.ToArray();
-            }
         }
     }
 }

@@ -117,12 +117,7 @@ namespace Microsoft.AspNetCore.SignalR.Client
                 _connection.Features.Set(transferFormatFeature);
             }
 
-            var requestedTransferFormat =
-                _protocol.Type == ProtocolType.Binary
-                    ? TransferFormat.Binary
-                    : TransferFormat.Text;
-
-            transferFormatFeature.TransferFormat = requestedTransferFormat;
+            transferFormatFeature.TransferFormat = _protocol.TransferFormat;
             await _connection.StartAsync();
             _needKeepAlive = _connection.Features.Get<IConnectionInherentKeepAliveFeature>() == null;
 

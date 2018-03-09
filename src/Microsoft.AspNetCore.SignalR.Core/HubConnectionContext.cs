@@ -159,19 +159,15 @@ namespace Microsoft.AspNetCore.SignalR
                                     var transportCapabilities = Features.Get<IConnectionTransportFeature>()?.TransportCapabilities
                                         ?? throw new InvalidOperationException("Unable to read transport capabilities.");
 
-                                    var requiredTransferFormat = (Protocol.Type == ProtocolType.Binary)
-                                        ? TransferFormat.Binary 
-                                        : TransferFormat.Text;
-
-                                    if ((transportCapabilities & requiredTransferFormat) == 0)
+                                    if ((transportCapabilities & Protocol.TransferFormat) == 0)
                                     {
-                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{requiredTransferFormat}' transfer mode.");
+                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{Protocol.TransferFormat}' transfer mode.");
                                     }
 
                                     var transferFormatFeature = Features.Get<ITransferFormatFeature>() ??
                                         throw new InvalidOperationException("Unable to read transfer mode.");
 
-                                    transferFormatFeature.TransferFormat = requiredTransferFormat;
+                                    transferFormatFeature.TransferFormat = Protocol.TransferFormat;
 
                                     _cachedPingMessage = Protocol.WriteToArray(PingMessage.Instance);
 

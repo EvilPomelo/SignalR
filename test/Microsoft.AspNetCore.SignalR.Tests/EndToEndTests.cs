@@ -416,7 +416,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         private class FakeTransport : ITransport
         {
-            public TransferFormat? Mode => TransferFormat.Text;
+            public TransferFormat? TransferFormat => TransferFormat.Text;
             public string prevConnectionId = null;
             private int tries = 0;
             private IDuplexPipe _application;

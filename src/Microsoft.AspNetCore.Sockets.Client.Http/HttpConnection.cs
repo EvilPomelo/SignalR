@@ -375,15 +375,11 @@ namespace Microsoft.AspNetCore.Sockets.Client
             // Start the transport, giving it one end of the pipeline
             try
             {
-                await _transport.StartAsync(connectUrl, pair.Application, GetTransferFormat(), this);
+                var transferFormat = GetTransferFormat();
+                await _transport.StartAsync(connectUrl, pair.Application, transferFormat, this);
 
                 // actual transfer mode can differ from the one that was requested so set it on the feature
-                if (!_transport.Format.HasValue)
-                {
-                    // This can happen with custom transports so it should be an exception, not an assert.
-                    throw new InvalidOperationException("Transport was expected to set the Mode property after StartAsync, but it has not been set.");
-                }
-                SetTransferFormat(_transport.Format.Value);
+                SetTransferFormat(transferFormat);
             }
             catch (Exception ex)
             {

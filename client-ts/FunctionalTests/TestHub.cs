@@ -5,6 +5,7 @@ using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Sockets;
 
 namespace FunctionalTests
 {
@@ -55,6 +56,11 @@ namespace FunctionalTests
         public ComplexObject EchoComplexObject(ComplexObject complexObject)
         {
             return complexObject;
+        }
+
+        public string GetActiveTransportName()
+        {
+            return Context.Connection.Metadata[ConnectionMetadataNames.Transport].ToString();
         }
     }
 }

@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-import { HttpConnection, LogLevel, TransportType } from "@aspnet/signalr";
+import { HttpConnection, LogLevel, TransferFormat, TransportType } from "@aspnet/signalr";
 import { eachTransport, ECHOENDPOINT_URL } from "./Common";
 
 describe("connection", () => {
     if (typeof WebSocket !== "undefined") {
         it("can connect to the server without specifying transport explicitly", (done) => {
             const message = "Hello World!";
-            const connection = new HttpConnection(ECHOENDPOINT_URL);
+            const connection = new HttpConnection(ECHOENDPOINT_URL, TransferFormat.Text);
 
             let received = "";
             connection.onreceive = (data) => {
@@ -37,7 +37,7 @@ describe("connection", () => {
             const message = "Hello World!";
             // the url should be resolved relative to the document.location.host
             // and the leading '/' should be automatically added to the url
-            const connection = new HttpConnection("echo", {
+            const connection = new HttpConnection("echo", TransferFormat.Text, {
                 logger: LogLevel.Trace,
                 transport: transportType,
             });

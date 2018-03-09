@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-import { HubConnection, LogLevel, TransportType } from "@aspnet/signalr";
+import { ConsoleLogger, HubConnection, JsonHubProtocol, LogLevel, TransportType } from "@aspnet/signalr";
 
+import { MessagePackHubProtocol } from "@aspnet/signalr-protocol-msgpack";
 import { eachTransport, eachTransportAndProtocol } from "./Common";
 
 const TESTHUBENDPOINT_URL = "/testhub";
+const TESTHUB_NOWEBSOCKETS_ENDPOINT_URL = "/testhub-nowebsockets";
 
 describe("hubConnection", () => {
     eachTransportAndProtocol((transportType, protocol) => {
@@ -519,6 +521,40 @@ describe("hubConnection", () => {
                 });
             }
         });
+    });
+
+    it("allows Server-Sent Events when negotiating for JSON protocol", async (done) => {
+        const hubConnection = new HubConnection(TESTHUB_NOWEBSOCKETS_ENDPOINT_URL, {
+            logger: LogLevel.Trace,
+            protocol: new JsonHubProtocol(),
+        });
+
+        try {
+            await hubConnection.start();
+
+            // Check what transport was used by asking the server to tell us.
+            expect(await hubConnection.invoke("GetActiveTransportName")).toEqual("ServerSentEvents");
+            done();
+        } catch (e) {
+            fail(e);
+        }
+    });
+
+    it("skips Server-Sent Events when negotiating for MsgPack protocol", async (done) => {
+        const hubConnection = new HubConnection(TESTHUB_NOWEBSOCKETS_ENDPOINT_URL, {
+            logger: LogLevel.Trace,
+            protocol: new MessagePackHubProtocol(),
+        });
+
+        try {
+            await hubConnection.start();
+
+            // Check what transport was used by asking the server to tell us.
+            expect(await hubConnection.invoke("GetActiveTransportName")).toEqual("LongPolling");
+            done();
+        } catch (e) {
+            fail(e);
+        }
     });
 
     function getJwtToken(url): Promise<string> {

@@ -132,12 +132,12 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 CreateConnection(transport: testTransport),
                 async (connection, closed) =>
                 {
-                    Assert.Null(connection.Features.Get<ITransferModeFeature>());
+                    Assert.Null(connection.Features.Get<ITransferFormatFeature>());
                     await connection.StartAsync().OrTimeout();
 
-                    var transferModeFeature = connection.Features.Get<ITransferModeFeature>();
+                    var transferModeFeature = connection.Features.Get<ITransferFormatFeature>();
                     Assert.NotNull(transferModeFeature);
-                    Assert.Equal(TransferFormat.Binary, transferModeFeature.TransferMode);
+                    Assert.Equal(TransferFormat.Binary, transferModeFeature.TransferFormat);
                 });
         }
     }

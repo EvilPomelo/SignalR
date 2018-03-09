@@ -178,8 +178,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var url = _serverFixture.Url + "/echo";
                 var connection = new HttpConnection(new Uri(url), transportType, loggerFactory);
 
-                connection.Features.Set<ITransferModeFeature>(
-                    new TransferModeFeature { TransferMode = requestedTransferMode });
+                connection.Features.Set<ITransferFormatFeature>(
+                    new TransferFormatFeature { TransferFormat = requestedTransferMode });
                 try
                 {
                     var closeTcs = new TaskCompletionSource<object>();
@@ -258,7 +258,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         private bool IsBase64Encoded(TransferFormat transferMode, IConnection connection)
         {
             return transferMode == TransferFormat.Binary &&
-                connection.Features.Get<ITransferModeFeature>().TransferMode == TransferFormat.Text;
+                connection.Features.Get<ITransferFormatFeature>().TransferFormat == TransferFormat.Text;
         }
 
         public static IEnumerable<object[]> MessageSizesData
@@ -281,8 +281,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
                 var url = _serverFixture.Url + "/echo";
                 var connection = new HttpConnection(new Uri(url), TransportType.WebSockets, loggerFactory);
-                connection.Features.Set<ITransferModeFeature>(
-                    new TransferModeFeature { TransferMode = TransferFormat.Binary });
+                connection.Features.Set<ITransferFormatFeature>(
+                    new TransferFormatFeature { TransferFormat = TransferFormat.Binary });
 
                 try
                 {

@@ -7,6 +7,7 @@ import { HttpError, TimeoutError } from "./Errors";
 import { HttpClient, HttpRequest } from "./HttpClient";
 import { IConnection } from "./IConnection";
 import { ILogger, LogLevel } from "./ILogger";
+import { Arg } from "./Utils";
 
 export enum TransportType {
     WebSockets,
@@ -38,6 +39,15 @@ export class WebSocketTransport implements ITransport {
     }
 
     public connect(url: string, transferFormat: TransferFormat, connection: IConnection): Promise<void> {
+        Arg.isRequired(url, "url");
+        Arg.isRequired(transferFormat, "transferFormat");
+        Arg.isIn(transferFormat, TransferFormat, "transferFormat");
+        Arg.isRequired(connection, "connection");
+
+        if (typeof (WebSocket) === "undefined") {
+            throw new Error("'WebSocket' is not supported in your environment.");
+        }
+
         return new Promise<void>((resolve, reject) => {
             url = url.replace(/^http/, "ws");
             const token = this.accessTokenFactory();
@@ -115,8 +125,13 @@ export class ServerSentEventsTransport implements ITransport {
     }
 
     public connect(url: string, transferFormat: TransferFormat, connection: IConnection): Promise<void> {
+        Arg.isRequired(url, "url");
+        Arg.isRequired(transferFormat, "transferFormat");
+        Arg.isIn(transferFormat, TransferFormat, "transferFormat");
+        Arg.isRequired(connection, "connection");
+
         if (typeof (EventSource) === "undefined") {
-            Promise.reject("EventSource not supported by the browser.");
+            throw new Error("'EventSource' is not supported in your environment.");
         }
 
         this.url = url;
@@ -201,6 +216,11 @@ export class LongPollingTransport implements ITransport {
     }
 
     public connect(url: string, transferFormat: TransferFormat, connection: IConnection): Promise<void> {
+        Arg.isRequired(url, "url");
+        Arg.isRequired(transferFormat, "transferFormat");
+        Arg.isIn(transferFormat, TransferFormat, "transferFormat");
+        Arg.isRequired(connection, "connection");
+
         this.url = url;
 
         // Set a flag indicating we have inherent keep-alive in this transport.

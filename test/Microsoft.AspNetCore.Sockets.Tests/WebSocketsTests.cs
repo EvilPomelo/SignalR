@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Sockets.Tests
 
                 using (var feature = new TestWebSocketConnectionFeature())
                 {
-                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null) { TransferMode = transferMode };
+                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null) { TransferFormat = transferMode };
                     var ws = new WebSocketsTransport(new WebSocketOptions(), connection.Application, connectionContext, loggerFactory);
 
                     // Give the server socket to the transport and run it

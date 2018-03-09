@@ -21,7 +21,7 @@ namespace Microsoft.AspNetCore.Sockets
                                             IConnectionTransportFeature,
                                             IConnectionUserFeature,
                                             IConnectionHeartbeatFeature,
-                                            ITransferModeFeature
+                                            ITransferFormatFeature
     {
         private List<(Action<object> handler, object state)> _heartbeatHandlers = new List<(Action<object> handler, object state)>();
 
@@ -43,7 +43,7 @@ namespace Microsoft.AspNetCore.Sockets
             Features.Set<IConnectionMetadataFeature>(this);
             Features.Set<IConnectionIdFeature>(this);
             Features.Set<IConnectionTransportFeature>(this);
-            Features.Set<ITransferModeFeature>(this);
+            Features.Set<ITransferFormatFeature>(this);
             Features.Set<IConnectionHeartbeatFeature>(this);
         }
 
@@ -74,7 +74,7 @@ namespace Microsoft.AspNetCore.Sockets
         // By default, we assume the connection supports all transfer modes.
         public TransferFormat TransportCapabilities { get; set; } = TransferFormat.Binary | TransferFormat.Text;
 
-        public TransferFormat TransferMode { get; set; }
+        public TransferFormat TransferFormat { get; set; }
 
         public void OnHeartbeat(Action<object> action, object state)
         {

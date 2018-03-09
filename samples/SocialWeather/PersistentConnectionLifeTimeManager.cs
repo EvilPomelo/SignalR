@@ -29,10 +29,10 @@ namespace SocialWeather
             connection.Features.Get<IConnectionMetadataFeature>().Metadata["format"] = format;
             if (string.Equals(format, "protobuf", StringComparison.OrdinalIgnoreCase))
             {
-                var transferModeFeature = connection.Features.Get<ITransferModeFeature>();
+                var transferModeFeature = connection.Features.Get<ITransferFormatFeature>();
                 if (transferModeFeature != null)
                 {
-                    transferModeFeature.TransferMode = TransferFormat.Binary;
+                    transferModeFeature.TransferFormat = TransferFormat.Binary;
                 }
             }
             _connectionList.Add(connection);

@@ -84,14 +84,14 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         {
             if (_transferMode.HasValue)
             {
-                var transferModeFeature = Features.Get<ITransferModeFeature>();
+                var transferModeFeature = Features.Get<ITransferFormatFeature>();
                 if (transferModeFeature == null)
                 {
-                    transferModeFeature = new TransferModeFeature();
+                    transferModeFeature = new TransferFormatFeature();
                     Features.Set(transferModeFeature);
                 }
 
-                transferModeFeature.TransferMode = _transferMode.Value;
+                transferModeFeature.TransferFormat = _transferMode.Value;
             }
 
             _started.TrySetResult(null);

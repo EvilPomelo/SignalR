@@ -395,25 +395,25 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
         private TransferFormat GetTransferMode()
         {
-            var transferModeFeature = Features.Get<ITransferModeFeature>();
+            var transferModeFeature = Features.Get<ITransferFormatFeature>();
             if (transferModeFeature == null)
             {
                 return TransferFormat.Text;
             }
 
-            return transferModeFeature.TransferMode;
+            return transferModeFeature.TransferFormat;
         }
 
         private void SetTransferMode(TransferFormat transferMode)
         {
-            var transferModeFeature = Features.Get<ITransferModeFeature>();
+            var transferModeFeature = Features.Get<ITransferFormatFeature>();
             if (transferModeFeature == null)
             {
-                transferModeFeature = new TransferModeFeature();
+                transferModeFeature = new TransferFormatFeature();
                 Features.Set(transferModeFeature);
             }
 
-            transferModeFeature.TransferMode = transferMode;
+            transferModeFeature.TransferFormat = transferMode;
         }
 
         private async Task ReceiveAsync()

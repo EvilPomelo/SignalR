@@ -7,6 +7,7 @@ import { IConnection } from "./IConnection";
 import { ILogger, LogLevel } from "./ILogger";
 import { LoggerFactory } from "./Loggers";
 import { ITransport, LongPollingTransport, ServerSentEventsTransport, TransferFormat, TransportType, WebSocketTransport } from "./Transports";
+import { Arg } from "./Utils";
 
 export interface IHttpConnectionOptions {
     httpClient?: HttpClient;
@@ -23,10 +24,10 @@ const enum ConnectionState {
 
 interface INegotiateResponse {
     connectionId: string;
-    endpoints: IConnectionEndpoint[];
+    availableTransports: IAvailableTransport[];
 }
 
-interface IConnectionEndpoint {
+interface IAvailableTransport {
     transport: keyof typeof TransportType;
     transferFormats: Array<keyof typeof TransferFormat>;
 }
@@ -46,6 +47,10 @@ export class HttpConnection implements IConnection {
     public readonly features: any = {};
 
     constructor(url: string, transferFormat: TransferFormat, options: IHttpConnectionOptions = {}) {
+        Arg.isRequired(url, "url");
+        Arg.isRequired(transferFormat, "transferFormat");
+        Arg.isIn(transferFormat, TransferFormat, "transferFormat");
+
         this.transferFormat = transferFormat;
         this.logger = LoggerFactory.createLogger(options.logger);
         this.baseUrl = this.resolveUrl(url);
@@ -98,7 +103,7 @@ export class HttpConnection implements IConnection {
 
                 if (this.connectionId) {
                     this.url = this.baseUrl + (this.baseUrl.indexOf("?") === -1 ? "?" : "&") + `id=${this.connectionId}`;
-                    this.transport = this.createTransport(this.options.transport, negotiateResponse.endpoints, this.transferFormat);
+                    this.transport = this.createTransport(this.options.transport, negotiateResponse.availableTransports, this.transferFormat);
                 }
             }
 
@@ -111,55 +116,58 @@ export class HttpConnection implements IConnection {
             // the state if the connection is already marked as Disconnected
             this.changeState(ConnectionState.Connecting, ConnectionState.Connected);
         } catch (e) {
-            this.logger.log(LogLevel.Error, "Failed to start the connection. " + e);
+            this.logger.log(LogLevel.Error, "Failed to start the connection: " + e);
             this.connectionState = ConnectionState.Disconnected;
             this.transport = null;
             throw e;
         }
     }
 
-    private createTransport(requestedTransport: TransportType | ITransport, availableEndpoints: IConnectionEndpoint[], requestedTransferFormat: TransferFormat): ITransport {
+    private createTransport(requestedTransport: TransportType | ITransport, availableTransports: IAvailableTransport[], requestedTransferFormat: TransferFormat): ITransport {
         if (this.isITransport(requestedTransport)) {
-            this.logger.log(LogLevel.Trace, "Connection was provided an instance of ITransport, using that directly");
+            this.logger.log(LogLevel.Trace, "Connection was provided an instance of ITransport, using that directly.");
             return requestedTransport;
         }
 
-        for (const endpoint of availableEndpoints) {
+        for (const endpoint of availableTransports) {
             const transport = this.resolveTransport(endpoint, requestedTransport, requestedTransferFormat);
             if (transport) {
                 return this.constructTransport(transport);
             }
         }
 
-        throw new Error("Unable to initialize any of the available transports");
+        throw new Error("Unable to initialize any of the available transports.");
     }
 
     private constructTransport(transport: TransportType) {
-        if (transport === TransportType.WebSockets) {
-            return new WebSocketTransport(this.options.accessTokenFactory, this.logger);
-        }
-
-        if (transport === TransportType.ServerSentEvents) {
-            return new ServerSentEventsTransport(this.httpClient, this.options.accessTokenFactory, this.logger);
-        }
-
-        if (transport === TransportType.LongPolling) {
-            return new LongPollingTransport(this.httpClient, this.options.accessTokenFactory, this.logger);
+        switch (transport) {
+            case TransportType.WebSockets:
+                return new WebSocketTransport(this.options.accessTokenFactory, this.logger);
+            case TransportType.ServerSentEvents:
+                return new ServerSentEventsTransport(this.httpClient, this.options.accessTokenFactory, this.logger);
+            case TransportType.LongPolling:
+                return new LongPollingTransport(this.httpClient, this.options.accessTokenFactory, this.logger);
+            default:
+                throw new Error(`Unknown transport: ${transport}.`);
         }
     }
 
-    private resolveTransport(endpoint: IConnectionEndpoint, requestedTransport: TransportType, requestedTransferFormat: TransferFormat): TransportType | null {
+    private resolveTransport(endpoint: IAvailableTransport, requestedTransport: TransportType, requestedTransferFormat: TransferFormat): TransportType | null {
         const transport = TransportType[endpoint.transport];
-        const transferFormats = endpoint.transferFormats.map((s) => TransferFormat[s]);
-        if (!requestedTransport || transport === requestedTransport) {
-            if (transferFormats.indexOf(requestedTransferFormat) >= 0) {
-                this.logger.log(LogLevel.Trace, `Selecting transport '${transport}'`);
-                return transport;
-            } else {
-                this.logger.log(LogLevel.Trace, `Skipping transport '${transport}' because it does not support the requested transfer format '${requestedTransferFormat}'`);
-            }
+        if (!transport) {
+            this.logger.log(LogLevel.Trace, `Skipping transport '${endpoint.transport}' because it is not supported by this client.`);
         } else {
-            this.logger.log(LogLevel.Trace, `Skipping transport '${transport}' because it was disabled by the client.`);
+            const transferFormats = endpoint.transferFormats.map((s) => TransferFormat[s]);
+            if (!requestedTransport || transport === requestedTransport) {
+                if (transferFormats.indexOf(requestedTransferFormat) >= 0) {
+                    this.logger.log(LogLevel.Trace, `Selecting transport '${transport}'`);
+                    return transport;
+                } else {
+                    this.logger.log(LogLevel.Trace, `Skipping transport '${transport}' because it does not support the requested transfer format '${requestedTransferFormat}'.`);
+                }
+            } else {
+                this.logger.log(LogLevel.Trace, `Skipping transport '${transport}' because it was disabled by the client.`);
+            }
         }
         return null;
     }
@@ -178,7 +186,7 @@ export class HttpConnection implements IConnection {
 
     public send(data: any): Promise<void> {
         if (this.connectionState !== ConnectionState.Connected) {
-            throw new Error("Cannot send data if the connection is not in the 'Connected' State");
+            throw new Error("Cannot send data if the connection is not in the 'Connected' State.");
         }
 
         return this.transport.send(data);
@@ -237,7 +245,7 @@ export class HttpConnection implements IConnection {
         }
 
         const normalizedUrl = baseUrl + url;
-        this.logger.log(LogLevel.Information, `Normalizing '${url}' to '${normalizedUrl}'`);
+        this.logger.log(LogLevel.Information, `Normalizing '${url}' to '${normalizedUrl}'.`);
         return normalizedUrl;
     }
 

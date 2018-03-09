@@ -219,7 +219,7 @@ namespace Microsoft.AspNetCore.Sockets.Internal.Transports
                             {
                                 Log.SendPayload(_logger, buffer.Length);
 
-                                var webSocketMessageType = (_connection.TransferMode == TransferFormat.Binary
+                                var webSocketMessageType = (_connection.TransferFormat == TransferFormat.Binary
                                     ? WebSocketMessageType.Binary
                                     : WebSocketMessageType.Text);
 

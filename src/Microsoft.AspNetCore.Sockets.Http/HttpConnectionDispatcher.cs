@@ -385,7 +385,7 @@ namespace Microsoft.AspNetCore.Sockets
                 jsonWriter.WriteStartObject();
                 jsonWriter.WritePropertyName("connectionId");
                 jsonWriter.WriteValue(connectionId);
-                jsonWriter.WritePropertyName("endpoints");
+                jsonWriter.WritePropertyName("availableTransports");
                 jsonWriter.WriteStartArray();
                 if ((options.Transports & TransportType.WebSockets) != 0)
                 {

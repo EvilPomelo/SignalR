@@ -279,7 +279,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         [Theory]
         [InlineData(TransferFormat.Text)]
         [InlineData(TransferFormat.Binary)]
-        public async Task SSETransportSetsTransferMode(TransferFormat transferMode)
+        public async Task SSETransportSetsTransferFormat(TransferFormat transferFormat)
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -296,7 +296,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 Assert.Null(sseTransport.Format);
 
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
-                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferMode, connection: Mock.Of<IConnection>()).OrTimeout();
+                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferFormat, connection: Mock.Of<IConnection>()).OrTimeout();
                 Assert.Equal(TransferFormat.Text, sseTransport.Format);
                 await sseTransport.StopAsync().OrTimeout();
             }
@@ -322,7 +322,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                 var sseTransport = new ServerSentEventsTransport(httpClient);
 
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
-                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferMode.Text, connection: Mock.Of<IConnection>()).OrTimeout();
+                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text, connection: Mock.Of<IConnection>()).OrTimeout();
                 await sseTransport.StopAsync().OrTimeout();
             }
 
@@ -339,7 +339,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         }
 
         [Fact]
-        public async Task SSETransportThrowsForInvalidTransferMode()
+        public async Task SSETransportThrowsForInvalidTransferFormat()
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -357,7 +357,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                     sseTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferFormat.Text | TransferFormat.Binary, connection: Mock.Of<IConnection>()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferMode", exception.ParamName);
+                Assert.Equal("requestedTransferFormat", exception.ParamName);
             }
         }
     }

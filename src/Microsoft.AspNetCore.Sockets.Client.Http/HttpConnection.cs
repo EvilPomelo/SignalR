@@ -375,7 +375,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
             // Start the transport, giving it one end of the pipeline
             try
             {
-                await _transport.StartAsync(connectUrl, pair.Application, GetTransferMode(), this);
+                await _transport.StartAsync(connectUrl, pair.Application, GetTransferFormat(), this);
 
                 // actual transfer mode can differ from the one that was requested so set it on the feature
                 if (!_transport.Format.HasValue)
@@ -383,7 +383,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
                     // This can happen with custom transports so it should be an exception, not an assert.
                     throw new InvalidOperationException("Transport was expected to set the Mode property after StartAsync, but it has not been set.");
                 }
-                SetTransferMode(_transport.Format.Value);
+                SetTransferFormat(_transport.Format.Value);
             }
             catch (Exception ex)
             {
@@ -393,27 +393,27 @@ namespace Microsoft.AspNetCore.Sockets.Client
             }
         }
 
-        private TransferFormat GetTransferMode()
+        private TransferFormat GetTransferFormat()
         {
-            var transferModeFeature = Features.Get<ITransferFormatFeature>();
-            if (transferModeFeature == null)
+            var transferFormatFeature = Features.Get<ITransferFormatFeature>();
+            if (transferFormatFeature == null)
             {
                 return TransferFormat.Text;
             }
 
-            return transferModeFeature.TransferFormat;
+            return transferFormatFeature.TransferFormat;
         }
 
-        private void SetTransferMode(TransferFormat transferMode)
+        private void SetTransferFormat(TransferFormat transferFormat)
         {
-            var transferModeFeature = Features.Get<ITransferFormatFeature>();
-            if (transferModeFeature == null)
+            var transferFormatFeature = Features.Get<ITransferFormatFeature>();
+            if (transferFormatFeature == null)
             {
-                transferModeFeature = new TransferFormatFeature();
-                Features.Set(transferModeFeature);
+                transferFormatFeature = new TransferFormatFeature();
+                Features.Set(transferFormatFeature);
             }
 
-            transferModeFeature.TransferFormat = transferMode;
+            transferFormatFeature.TransferFormat = transferFormat;
         }
 
         private async Task ReceiveAsync()

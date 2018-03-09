@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -12,7 +12,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
         private static class Log
         {
             private static readonly Action<ILogger, TransferFormat, Exception> _startTransport =
-                LoggerMessage.Define<TransferFormat>(LogLevel.Information, new EventId(1, "StartTransport"), "Starting transport. Transfer mode: {transferMode}.");
+                LoggerMessage.Define<TransferFormat>(LogLevel.Information, new EventId(1, "StartTransport"), "Starting transport. Transfer mode: {transferFormat}.");
 
             private static readonly Action<ILogger, Exception> _transportStopped =
                 LoggerMessage.Define(LogLevel.Debug, new EventId(2, "TransportStopped"), "Transport stopped.");
@@ -65,9 +65,9 @@ namespace Microsoft.AspNetCore.Sockets.Client
             private static readonly Action<ILogger, Exception> _cancelMessage =
                 LoggerMessage.Define(LogLevel.Debug, new EventId(18, "CancelMessage"), "Canceled passing message to application.");
 
-            public static void StartTransport(ILogger logger, TransferFormat transferMode)
+            public static void StartTransport(ILogger logger, TransferFormat transferFormat)
             {
-                _startTransport(logger, transferMode, null);
+                _startTransport(logger, transferFormat, null);
             }
 
             public static void TransportStopped(ILogger logger, Exception exception)

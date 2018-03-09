@@ -59,7 +59,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/httpheader"), pair.Application,
-                    TransferMode.Binary, connection: Mock.Of<IConnection>()).OrTimeout();
+                    TransferFormat.Binary, connection: Mock.Of<IConnection>()).OrTimeout();
 
                 await pair.Transport.Output.WriteAsync(Encoding.UTF8.GetBytes("User-Agent"));
 
@@ -98,13 +98,13 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
         [InlineData(TransferFormat.Text)]
         [InlineData(TransferFormat.Binary)]
-        public async Task WebSocketsTransportStopsWhenConnectionClosedByTheServer(TransferFormat transferMode)
+        public async Task WebSocketsTransportStopsWhenConnectionClosedByTheServer(TransferFormat transferFormat)
         {
             using (StartLog(out var loggerFactory))
             {
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
-                await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application, transferMode, connection: Mock.Of<IConnection>());
+                await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application, transferFormat, connection: Mock.Of<IConnection>());
 
                 await pair.Transport.Output.WriteAsync(new byte[] { 0x42 });
 
@@ -121,7 +121,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
         [InlineData(TransferFormat.Text)]
         [InlineData(TransferFormat.Binary)]
-        public async Task WebSocketsTransportSetsTransferMode(TransferFormat transferMode)
+        public async Task WebSocketsTransportSetsTransferFormat(TransferFormat transferFormat)
         {
             using (StartLog(out var loggerFactory))
             {
@@ -130,8 +130,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
                 Assert.Null(webSocketsTransport.Format);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application,
-                    transferMode, connection: Mock.Of<IConnection>()).OrTimeout();
-                Assert.Equal(transferMode, webSocketsTransport.Format);
+                    transferFormat, connection: Mock.Of<IConnection>()).OrTimeout();
+                Assert.Equal(transferFormat, webSocketsTransport.Format);
 
                 await webSocketsTransport.StopAsync().OrTimeout();
                 await webSocketsTransport.Running.OrTimeout();
@@ -140,7 +140,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         [ConditionalFact]
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
-        public async Task WebSocketsTransportThrowsForInvalidTransferMode()
+        public async Task WebSocketsTransportThrowsForInvalidTransferFormat()
         {
             using (StartLog(out var loggerFactory))
             {
@@ -150,7 +150,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                     webSocketsTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text | TransferFormat.Binary, connection: Mock.Of<IConnection>()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferMode", exception.ParamName);
+                Assert.Equal("requestedTransferFormat", exception.ParamName);
             }
         }
     }

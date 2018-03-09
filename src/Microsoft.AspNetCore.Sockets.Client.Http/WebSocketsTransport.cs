@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<WebSocketsTransport>();
         }
 
-        public async Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
+        public async Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferFormat, IConnection connection)
         {
             if (url == null)
             {
@@ -68,13 +68,13 @@ namespace Microsoft.AspNetCore.Sockets.Client
                 throw new ArgumentNullException(nameof(application));
             }
 
-            if (requestedTransferMode != TransferFormat.Binary && requestedTransferMode != TransferFormat.Text)
+            if (requestedTransferFormat != TransferFormat.Binary && requestedTransferFormat != TransferFormat.Text)
             {
-                throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferMode));
+                throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferFormat));
             }
 
             _application = application;
-            Format = requestedTransferMode;
+            Format = requestedTransferFormat;
 
             Log.StartTransport(_logger, Format.Value);
 

@@ -44,11 +44,11 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _logger = (loggerFactory ?? NullLoggerFactory.Instance).CreateLogger<ServerSentEventsTransport>();
         }
 
-        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
+        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferFormat, IConnection connection)
         {
-            if (requestedTransferMode != TransferFormat.Binary && requestedTransferMode != TransferFormat.Text)
+            if (requestedTransferFormat != TransferFormat.Binary && requestedTransferFormat != TransferFormat.Text)
             {
-                throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferMode));
+                throw new ArgumentException("Invalid transfer mode.", nameof(requestedTransferFormat));
             }
 
             _application = application;

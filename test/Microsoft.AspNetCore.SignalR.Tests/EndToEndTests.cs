@@ -166,8 +166,8 @@ namespace Microsoft.AspNetCore.SignalR.Tests
         }
 
         [Theory(Skip = "https://github.com/aspnet/SignalR/issues/1485")]
-        [MemberData(nameof(TransportTypesAndTransferModes))]
-        public async Task ConnectionCanSendAndReceiveMessages(TransportType transportType, TransferFormat requestedTransferMode)
+        [MemberData(nameof(TransportTypesAndTransferFormats))]
+        public async Task ConnectionCanSendAndReceiveMessages(TransportType transportType, TransferFormat requestedTransferFormat)
         {
             using (StartLog(out var loggerFactory, testName: $"ConnectionCanSendAndReceiveMessages_{transportType.ToString()}"))
             {
@@ -179,7 +179,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var connection = new HttpConnection(new Uri(url), transportType, loggerFactory);
 
                 connection.Features.Set<ITransferFormatFeature>(
-                    new TransferFormatFeature { TransferFormat = requestedTransferMode });
+                    new TransferFormatFeature { TransferFormat = requestedTransferFormat });
                 try
                 {
                     var closeTcs = new TaskCompletionSource<object>();
@@ -200,7 +200,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                     {
                         logger.LogInformation("Received {length} byte message", data.Length);
 
-                        if (IsBase64Encoded(requestedTransferMode, connection))
+                        if (IsBase64Encoded(requestedTransferFormat, connection))
                         {
                             data = Convert.FromBase64String(Encoding.UTF8.GetString(data));
                         }
@@ -216,7 +216,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                     var bytes = Encoding.UTF8.GetBytes(message);
 
                     // Need to encode binary payloads sent over text transports
-                    if (IsBase64Encoded(requestedTransferMode, connection))
+                    if (IsBase64Encoded(requestedTransferFormat, connection))
                     {
                         bytes = Encoding.UTF8.GetBytes(Convert.ToBase64String(bytes));
                     }
@@ -255,9 +255,9 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             }
         }
 
-        private bool IsBase64Encoded(TransferFormat transferMode, IConnection connection)
+        private bool IsBase64Encoded(TransferFormat transferFormat, IConnection connection)
         {
-            return transferMode == TransferFormat.Binary &&
+            return transferFormat == TransferFormat.Binary &&
                 connection.Features.Get<ITransferFormatFeature>().TransferFormat == TransferFormat.Text;
         }
 
@@ -416,12 +416,12 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         private class FakeTransport : ITransport
         {
-            public TransferMode? Mode => TransferMode.Text;
+            public TransferFormat? Mode => TransferFormat.Text;
             public string prevConnectionId = null;
             private int tries = 0;
             private IDuplexPipe _application;
 
-            public Task StartAsync(Uri url, IDuplexPipe application, TransferMode requestedTransferMode, IConnection connection)
+            public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferFormat, IConnection connection)
             {
                 _application = application;
                 tries++;
@@ -467,7 +467,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
             }
         }
 
-        public static IEnumerable<object[]> TransportTypesAndTransferModes
+        public static IEnumerable<object[]> TransportTypesAndTransferFormats
         {
             get
             {

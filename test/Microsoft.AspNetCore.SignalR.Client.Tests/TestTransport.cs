@@ -15,14 +15,14 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         public TransferFormat? Format { get; }
         public IDuplexPipe Application { get; private set; }
 
-        public TestTransport(Func<Task> onTransportStop = null, Func<Task> onTransportStart = null, TransferFormat transferMode = TransferFormat.Text)
+        public TestTransport(Func<Task> onTransportStop = null, Func<Task> onTransportStart = null, TransferFormat transferFormat = TransferFormat.Text)
         {
             _stopHandler = onTransportStop ?? new Func<Task>(() => Task.CompletedTask);
             _startHandler = onTransportStart ?? new Func<Task>(() => Task.CompletedTask);
-            Format = transferMode;
+            Format = transferFormat;
         }
 
-        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferMode, IConnection connection)
+        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferFormat, IConnection connection)
         {
             Application = application;
             return _startHandler();

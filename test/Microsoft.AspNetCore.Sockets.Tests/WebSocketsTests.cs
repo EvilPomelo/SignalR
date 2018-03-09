@@ -73,7 +73,7 @@ namespace Microsoft.AspNetCore.Sockets.Tests
         [Theory]
         [InlineData(TransferFormat.Text, WebSocketMessageType.Text)]
         [InlineData(TransferFormat.Binary, WebSocketMessageType.Binary)]
-        public async Task WebSocketTransportSetsMessageTypeBasedOnTransferModeFeature(TransferFormat transferMode, WebSocketMessageType expectedMessageType)
+        public async Task WebSocketTransportSetsMessageTypeBasedOnTransferFormatFeature(TransferFormat transferFormat, WebSocketMessageType expectedMessageType)
         {
             using (StartLog(out var loggerFactory, LogLevel.Debug))
             {
@@ -82,7 +82,7 @@ namespace Microsoft.AspNetCore.Sockets.Tests
 
                 using (var feature = new TestWebSocketConnectionFeature())
                 {
-                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null) { TransferFormat = transferMode };
+                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null) { TransferFormat = transferFormat };
                     var ws = new WebSocketsTransport(new WebSocketOptions(), connection.Application, connectionContext, loggerFactory);
 
                     // Give the server socket to the transport and run it

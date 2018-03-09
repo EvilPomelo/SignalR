@@ -362,7 +362,7 @@ namespace Microsoft.AspNetCore.Client.Tests
         [Theory]
         [InlineData(TransferFormat.Binary)]
         [InlineData(TransferFormat.Text)]
-        public async Task LongPollingTransportSetsTransferMode(TransferFormat transferMode)
+        public async Task LongPollingTransportSetsTransferFormat(TransferFormat transferFormat)
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -382,8 +382,8 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
 
                     Assert.Null(longPollingTransport.Format);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferMode, connection: new TestConnection());
-                    Assert.Equal(transferMode, longPollingTransport.Format);
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferFormat, connection: new TestConnection());
+                    Assert.Equal(transferFormat, longPollingTransport.Format);
                 }
                 finally
                 {
@@ -416,7 +416,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
 
                     Assert.Null(longPollingTransport.Mode);
-                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferMode.Text, connection: new TestConnection());
+                    await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text, connection: new TestConnection());
                 }
                 finally
                 {
@@ -437,7 +437,7 @@ namespace Microsoft.AspNetCore.Client.Tests
         }
 
         [Fact]
-        public async Task LongPollingTransportThrowsForInvalidTransferMode()
+        public async Task LongPollingTransportThrowsForInvalidTransferFormat()
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -455,7 +455,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                     longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferFormat.Text | TransferFormat.Binary, connection: new TestConnection()));
 
                 Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferMode", exception.ParamName);
+                Assert.Equal("requestedTransferFormat", exception.ParamName);
             }
         }
 

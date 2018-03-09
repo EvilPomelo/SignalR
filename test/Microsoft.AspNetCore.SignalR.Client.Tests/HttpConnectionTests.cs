@@ -125,9 +125,9 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         }
 
         [Fact]
-        public async Task StartAsyncSetsTransferModeFeature()
+        public async Task StartAsyncSetsTransferFormatFeature()
         {
-            var testTransport = new TestTransport(transferMode: TransferFormat.Binary);
+            var testTransport = new TestTransport(transferFormat: TransferFormat.Binary);
             await WithConnectionAsync(
                 CreateConnection(transport: testTransport),
                 async (connection, closed) =>
@@ -135,9 +135,9 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
                     Assert.Null(connection.Features.Get<ITransferFormatFeature>());
                     await connection.StartAsync().OrTimeout();
 
-                    var transferModeFeature = connection.Features.Get<ITransferFormatFeature>();
-                    Assert.NotNull(transferModeFeature);
-                    Assert.Equal(TransferFormat.Binary, transferModeFeature.TransferFormat);
+                    var transferFormatFeature = connection.Features.Get<ITransferFormatFeature>();
+                    Assert.NotNull(transferFormatFeature);
+                    Assert.Equal(TransferFormat.Binary, transferFormatFeature.TransferFormat);
                 });
         }
     }

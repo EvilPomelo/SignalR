@@ -29,7 +29,7 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
         private CancellationTokenSource _receiveShutdownToken = new CancellationTokenSource();
         private Task _receiveLoop;
 
-        private TransferFormat? _transferMode;
+        private TransferFormat? _transferFormat;
 
         public event Action<Exception> Closed;
         public Task Started => _started.Task;
@@ -44,9 +44,9 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
 
         public IFeatureCollection Features { get; } = new FeatureCollection();
 
-        public TestConnection(TransferFormat? transferMode = null)
+        public TestConnection(TransferFormat? transferFormat = null)
         {
-            _transferMode = transferMode;
+            _transferFormat = transferFormat;
             _receiveLoop = ReceiveLoopAsync(_receiveShutdownToken.Token);
         }
 
@@ -82,16 +82,16 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
 
         public Task StartAsync()
         {
-            if (_transferMode.HasValue)
+            if (_transferFormat.HasValue)
             {
-                var transferModeFeature = Features.Get<ITransferFormatFeature>();
-                if (transferModeFeature == null)
+                var transferFormatFeature = Features.Get<ITransferFormatFeature>();
+                if (transferFormatFeature == null)
                 {
-                    transferModeFeature = new TransferFormatFeature();
-                    Features.Set(transferModeFeature);
+                    transferFormatFeature = new TransferFormatFeature();
+                    Features.Set(transferFormatFeature);
                 }
 
-                transferModeFeature.TransferFormat = _transferMode.Value;
+                transferFormatFeature.TransferFormat = _transferFormat.Value;
             }
 
             _started.TrySetResult(null);

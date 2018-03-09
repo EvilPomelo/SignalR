@@ -159,19 +159,19 @@ namespace Microsoft.AspNetCore.SignalR
                                     var transportCapabilities = Features.Get<IConnectionTransportFeature>()?.TransportCapabilities
                                         ?? throw new InvalidOperationException("Unable to read transport capabilities.");
 
-                                    var requiredTransferMode = (Protocol.Type == ProtocolType.Binary)
+                                    var requiredTransferFormat = (Protocol.Type == ProtocolType.Binary)
                                         ? TransferFormat.Binary 
                                         : TransferFormat.Text;
 
-                                    if ((transportCapabilities & requiredTransferMode) == 0)
+                                    if ((transportCapabilities & requiredTransferFormat) == 0)
                                     {
-                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{requiredTransferMode}' transfer mode.");
+                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{requiredTransferFormat}' transfer mode.");
                                     }
 
-                                    var transferModeFeature = Features.Get<ITransferFormatFeature>() ??
+                                    var transferFormatFeature = Features.Get<ITransferFormatFeature>() ??
                                         throw new InvalidOperationException("Unable to read transfer mode.");
 
-                                    transferModeFeature.TransferFormat = requiredTransferMode;
+                                    transferFormatFeature.TransferFormat = requiredTransferFormat;
 
                                     using (var ms = new MemoryStream())
                                     {

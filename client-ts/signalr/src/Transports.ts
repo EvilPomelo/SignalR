@@ -235,14 +235,14 @@ export class LongPollingTransport implements ITransport {
         return Promise.resolve();
     }
 
-    private async poll(url: string, transferMode: TransferFormat): Promise<void> {
+    private async poll(url: string, transferFormat: TransferFormat): Promise<void> {
         const pollOptions: HttpRequest = {
             abortSignal: this.pollAbort.signal,
             headers: new Map<string, string>(),
             timeout: 90000,
         };
 
-        if (transferMode === TransferFormat.Binary) {
+        if (transferFormat === TransferFormat.Binary) {
             pollOptions.responseType = "arraybuffer";
         }
 

@@ -8,6 +8,8 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Sockets.Features;
+using Microsoft.AspNetCore.Sockets.Internal;
 using Microsoft.AspNetCore.Sockets.Internal.Transports;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
@@ -82,7 +84,10 @@ namespace Microsoft.AspNetCore.Sockets.Tests
 
                 using (var feature = new TestWebSocketConnectionFeature())
                 {
-                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null) { TransferFormat = transferFormat };
+                    var connectionContext = new DefaultConnectionContext(string.Empty, null, null);
+                    var transferFormatFeature = new TransferFormatFeature(TransferFormat.Text | TransferFormat.Binary);
+                    transferFormatFeature.ActiveFormat = transferFormat;
+                    connectionContext.Features.Set<ITransferFormatFeature>(transferFormatFeature);
                     var ws = new WebSocketsTransport(new WebSocketOptions(), connection.Application, connectionContext, loggerFactory);
 
                     // Give the server socket to the transport and run it

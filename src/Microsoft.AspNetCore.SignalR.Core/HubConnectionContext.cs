@@ -156,18 +156,19 @@ namespace Microsoft.AspNetCore.SignalR
                                 {
                                     Protocol = protocolResolver.GetProtocol(negotiationMessage.Protocol, supportedProtocols, this);
 
-                                    var transportCapabilities = Features.Get<IConnectionTransportFeature>()?.TransportCapabilities
-                                        ?? throw new InvalidOperationException("Unable to read transport capabilities.");
-
-                                    if ((transportCapabilities & Protocol.TransferFormat) == 0)
+                                    // If there's a transfer format feature, we need to check if we're compatible and set the active format.
+                                    // If there isn't a feature, it means that the transport supports binary data and doesn't need us to tell them
+                                    // what format we're writing in. (i.e. Long Polling)
+                                    var transferFormatFeature = Features.Get<ITransferFormatFeature>();
+                                    if(transferFormatFeature != null)
                                     {
-                                        throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{Protocol.TransferFormat}' transfer mode.");
+                                        if ((transferFormatFeature.SupportedFormats & Protocol.TransferFormat) == 0)
+                                        {
+                                            throw new InvalidOperationException($"Cannot use the '{Protocol.Name}' protocol on the current transport. The transport does not support the '{Protocol.TransferFormat}' transfer mode.");
+                                        }
+
+                                        transferFormatFeature.SetTransferFormat(Protocol.TransferFormat);
                                     }
-
-                                    var transferFormatFeature = Features.Get<ITransferFormatFeature>() ??
-                                        throw new InvalidOperationException("Unable to read transfer mode.");
-
-                                    transferFormatFeature.TransferFormat = Protocol.TransferFormat;
 
                                     _cachedPingMessage = Protocol.WriteToArray(PingMessage.Instance);
 

@@ -128,29 +128,29 @@ namespace Microsoft.AspNetCore.SignalR.Tests
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
 
-                Assert.Null(webSocketsTransport.Format);
                 await webSocketsTransport.StartAsync(new Uri(_serverFixture.WebSocketsUrl + "/echo"), pair.Application,
                     transferFormat, connection: Mock.Of<IConnection>()).OrTimeout();
-                Assert.Equal(transferFormat, webSocketsTransport.Format);
 
                 await webSocketsTransport.StopAsync().OrTimeout();
                 await webSocketsTransport.Running.OrTimeout();
             }
         }
 
-        [ConditionalFact]
+        [ConditionalTheory]
+        [InlineData(TransferFormat.Text | TransferFormat.Binary)] // Multiple values not allowed
+        [InlineData((TransferFormat)42)] // Unexpected value
         [OSSkipCondition(OperatingSystems.Windows, WindowsVersions.Win7, WindowsVersions.Win2008R2, SkipReason = "No WebSockets Client for this platform")]
-        public async Task WebSocketsTransportThrowsForInvalidTransferFormat()
+        public async Task WebSocketsTransportThrowsForInvalidTransferFormat(TransferFormat transferFormat)
         {
             using (StartLog(out var loggerFactory))
             {
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
                 var webSocketsTransport = new WebSocketsTransport(httpOptions: null, loggerFactory: loggerFactory);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    webSocketsTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text | TransferFormat.Binary, connection: Mock.Of<IConnection>()));
+                    webSocketsTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferFormat, connection: Mock.Of<IConnection>()));
 
-                Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferFormat", exception.ParamName);
+                Assert.Contains($"The '{transferFormat}' transfer format is not supported by this transport.", exception.Message);
+                Assert.Equal("transferFormat", exception.ParamName);
             }
         }
     }

@@ -5,6 +5,7 @@ namespace Microsoft.AspNetCore.Sockets.Features
 {
     public interface ITransferFormatFeature
     {
-        TransferFormat TransferFormat { get; set; }
+        TransferFormat SupportedFormats { get; }
+        TransferFormat ActiveFormat { get; set; }
     }
 }

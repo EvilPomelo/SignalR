@@ -44,9 +44,8 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
 
         public IFeatureCollection Features { get; } = new FeatureCollection();
 
-        public TestConnection(TransferFormat? transferFormat = null)
+        public TestConnection()
         {
-            _transferFormat = transferFormat;
             _receiveLoop = ReceiveLoopAsync(_receiveShutdownToken.Token);
         }
 
@@ -80,19 +79,16 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             throw new ObjectDisposedException("Unable to send message, underlying channel was closed");
         }
 
-        public Task StartAsync()
+        public Task StartAsync(TransferFormat transferFormat)
         {
-            if (_transferFormat.HasValue)
+            var transferFormatFeature = Features.Get<ITransferFormatFeature>();
+            if (transferFormatFeature == null)
             {
-                var transferFormatFeature = Features.Get<ITransferFormatFeature>();
-                if (transferFormatFeature == null)
-                {
-                    transferFormatFeature = new TransferFormatFeature();
-                    Features.Set(transferFormatFeature);
-                }
-
-                transferFormatFeature.TransferFormat = _transferFormat.Value;
+                transferFormatFeature = new TransferFormatFeature();
+                Features.Set(transferFormatFeature);
             }
+
+            transferFormatFeature.TransferFormat = transferFormat;
 
             _started.TrySetResult(null);
             return Task.CompletedTask;

@@ -115,7 +115,7 @@ namespace Microsoft.AspNetCore.Sockets
                 Log.EstablishedConnection(_logger);
 
                 // ServerSentEvents is a text protocol only
-                connection.TransportCapabilities = TransferFormat.Text;
+                connection.Features.Set<ITransferFormatFeature>(new TransferFormatFeature(TransferFormat.Text));
 
                 // We only need to provide the Input channel since writing to the application is handled through /send.
                 var sse = new ServerSentEventsTransport(connection.Application.Input, connection.ConnectionId, _loggerFactory);
@@ -139,6 +139,9 @@ namespace Microsoft.AspNetCore.Sockets
                 }
 
                 Log.EstablishedConnection(_logger);
+
+                // WebSockets needs to be informed of the active transfer format, but supports both
+                connection.Features.Set<ITransferFormatFeature>(new TransferFormatFeature(TransferFormat.Text | TransferFormat.Binary));
 
                 var ws = new WebSocketsTransport(options.WebSockets, connection.Application, connection, _loggerFactory);
 

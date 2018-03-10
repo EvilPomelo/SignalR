@@ -47,9 +47,6 @@ namespace Microsoft.AspNetCore.Sockets.Client
         private PipeWriter Output => _transportChannel.Output;
         private readonly List<ReceiveCallback> _callbacks = new List<ReceiveCallback>();
         private readonly TransportType _requestedTransportType = TransportType.All;
-        private TransportType _serverTransports = TransportType.All;
-        // The order of the transports here is the order determines the fallback order.
-        private static readonly TransportType[] AllTransports = new[]{ TransportType.WebSockets, TransportType.ServerSentEvents, TransportType.LongPolling };
         private readonly ConnectionLogScope _logScope;
         private readonly IDisposable _scopeDisposable;
 
@@ -111,9 +108,9 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _scopeDisposable = _logger.BeginScope(_logScope);
         }
 
-        public async Task StartAsync() => await StartAsyncCore().ForceAsync();
+        public async Task StartAsync(TransferFormat transferFormat) => await StartAsyncCore(transferFormat).ForceAsync();
 
-        private Task StartAsyncCore()
+        private Task StartAsyncCore(TransferFormat transferFormat)
         {
             if (ChangeState(from: ConnectionState.Disconnected, to: ConnectionState.Connecting) != ConnectionState.Disconnected)
             {
@@ -124,7 +121,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
             _startTcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             _eventQueue = new TaskQueue();
 
-            StartAsyncInternal()
+            StartAsyncInternal(transferFormat)
                 .ContinueWith(t =>
                 {
                     var abortException = _abortException;
@@ -153,7 +150,7 @@ namespace Microsoft.AspNetCore.Sockets.Client
             return negotiationResponse;
         }
 
-        private async Task StartAsyncInternal()
+        private async Task StartAsyncInternal(TransferFormat transferFormat)
         {
             Log.HttpConnectionStarting(_logger);
 
@@ -177,14 +174,27 @@ namespace Microsoft.AspNetCore.Sockets.Client
                     }
 
                     // This should only need to happen once
-                    _serverTransports = GetAvailableServerTransports(negotiationResponse);
                     connectUrl = CreateConnectUrl(Url, negotiationResponse.ConnectionId);
 
-                    foreach (var transport in AllTransports)
+                    foreach (var transport in negotiationResponse.AvailableTransports)
                     {
+                        if (!Enum.TryParse<TransportType>(transport.Transport, out var transportType))
+                        {
+                            Log.TransportNotSupported(_logger, transport.Transport);
+                            continue;
+                        }
+
                         try
                         {
-                            if ((transport & _serverTransports & _requestedTransportType) != 0)
+                            if ((transportType & _requestedTransportType) == 0)
+                            {
+                                Log.TransportDisabledByClient(_logger, transportType);
+                            }
+                            else if (Array.IndexOf(transport.TransferFormats, transferFormat) < 0)
+                            {
+                                Log.TransportDoesNotSupportTransferFormat(_logger, transportType, transferFormat);
+                            }
+                            else
                             {
                                 // The negotiation response gets cleared in the fallback scenario.
                                 if (negotiationResponse == null)
@@ -193,20 +203,21 @@ namespace Microsoft.AspNetCore.Sockets.Client
                                     connectUrl = CreateConnectUrl(Url, negotiationResponse.ConnectionId);
                                 }
 
-                                Log.StartingTransport(_logger, transport, connectUrl);
-                                await StartTransport(connectUrl, transport);
+                                Log.StartingTransport(_logger, transportType, connectUrl);
+                                await StartTransport(connectUrl, transportType);
                                 break;
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
+                            Log.TransportFailed(_logger, transportType, ex);
                             // Try the next transport
                             // Clear the negotiation response so we know to re-negotiate.
                             negotiationResponse = null;
                         }
                     }
                 }
-                
+
                 if (_transport == null)
                 {
                     throw new InvalidOperationException("Unable to connect to the server with any of the available transports.");
@@ -338,22 +349,6 @@ namespace Microsoft.AspNetCore.Sockets.Client
             return negotiationResponse;
         }
 
-        private TransportType GetAvailableServerTransports(NegotiationResponse negotiationResponse)
-        {
-            if (negotiationResponse.AvailableTransports == null)
-            {
-                throw new FormatException("No transports returned in negotiation response.");
-            }
-
-            var availableServerTransports = (TransportType)0;
-            foreach (var t in negotiationResponse.AvailableTransports)
-            {
-                availableServerTransports |= t;
-            }
-
-            return availableServerTransports;
-        }
-
         private static Uri CreateConnectUrl(Uri url, string connectionId)
         {
             if (string.IsNullOrWhiteSpace(connectionId))
@@ -366,7 +361,6 @@ namespace Microsoft.AspNetCore.Sockets.Client
 
         private async Task StartTransport(Uri connectUrl, TransportType transportType)
         {
-
             var options = new PipeOptions(readerScheduler: PipeScheduler.ThreadPool);
             var pair = DuplexPipe.CreateConnectionPair(options, options);
             _transportChannel = pair.Transport;
@@ -705,7 +699,13 @@ namespace Microsoft.AspNetCore.Sockets.Client
         private class NegotiationResponse
         {
             public string ConnectionId { get; set; }
-            public TransportType[] AvailableTransports { get; set; }
+            public AvailableTransport[] AvailableTransports { get; set; }
+        }
+
+        private class AvailableTransport
+        {
+            public string Transport { get; set; }
+            public string[] TransferFormats { get; set; }
         }
     }
 }

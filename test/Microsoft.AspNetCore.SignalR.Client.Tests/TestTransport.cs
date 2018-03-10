@@ -1,6 +1,5 @@
 using System;
 using System.IO.Pipelines;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Sockets;
 using Microsoft.AspNetCore.Sockets.Client;
@@ -22,8 +21,12 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             Format = transferFormat;
         }
 
-        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat requestedTransferFormat, IConnection connection)
+        public Task StartAsync(Uri url, IDuplexPipe application, TransferFormat transferFormat, IConnection connection)
         {
+            if((Format & transferFormat) == 0)
+            {
+                throw new InvalidOperationException($"The '{transferFormat}' transfer format is not supported by this transport.");
+            }
             Application = application;
             return _startHandler();
         }

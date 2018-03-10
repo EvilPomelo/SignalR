@@ -381,9 +381,7 @@ namespace Microsoft.AspNetCore.Client.Tests
                 {
                     var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
 
-                    Assert.Null(longPollingTransport.Format);
                     await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferFormat, connection: new TestConnection());
-                    Assert.Equal(transferFormat, longPollingTransport.Format);
                 }
                 finally
                 {
@@ -415,7 +413,6 @@ namespace Microsoft.AspNetCore.Client.Tests
                 {
                     var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
 
-                    Assert.Null(longPollingTransport.Mode);
                     await longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Text, connection: new TestConnection());
                 }
                 finally
@@ -436,8 +433,10 @@ namespace Microsoft.AspNetCore.Client.Tests
             Assert.Equal(assemblyVersion.InformationalVersion, userAgentHeader.Product.Version);
         }
 
-        [Fact]
-        public async Task LongPollingTransportThrowsForInvalidTransferFormat()
+        [Theory]
+        [InlineData(TransferFormat.Text | TransferFormat.Binary)] // Multiple values not allowed
+        [InlineData((TransferFormat)42)] // Unexpected value
+        public async Task LongPollingTransportThrowsForInvalidTransferFormat(TransferFormat transferFormat)
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -452,10 +451,10 @@ namespace Microsoft.AspNetCore.Client.Tests
             {
                 var longPollingTransport = new LongPollingTransport(httpClient);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferFormat.Text | TransferFormat.Binary, connection: new TestConnection()));
+                    longPollingTransport.StartAsync(new Uri("http://fakeuri.org"), null, transferFormat, connection: new TestConnection()));
 
-                Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferFormat", exception.ParamName);
+                Assert.Contains($"The '{transferFormat}' transfer format is not supported by this transport.", exception.Message);
+                Assert.Equal("transferFormat", exception.ParamName);
             }
         }
 

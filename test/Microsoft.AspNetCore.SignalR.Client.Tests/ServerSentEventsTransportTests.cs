@@ -276,10 +276,8 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             }
         }
 
-        [Theory]
-        [InlineData(TransferFormat.Text)]
-        [InlineData(TransferFormat.Binary)]
-        public async Task SSETransportSetsTransferFormat(TransferFormat transferFormat)
+        [Fact]
+        public async Task SSETransportDoesNotSupportBinary()
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -293,12 +291,10 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             using (var httpClient = new HttpClient(mockHttpHandler.Object))
             {
                 var sseTransport = new ServerSentEventsTransport(httpClient);
-                Assert.Null(sseTransport.Format);
 
                 var pair = DuplexPipe.CreateConnectionPair(PipeOptions.Default, PipeOptions.Default);
-                await sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, transferFormat, connection: Mock.Of<IConnection>()).OrTimeout();
-                Assert.Equal(TransferFormat.Text, sseTransport.Format);
-                await sseTransport.StopAsync().OrTimeout();
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => sseTransport.StartAsync(new Uri("http://fakeuri.org"), pair.Application, TransferFormat.Binary, connection: Mock.Of<IConnection>()).OrTimeout());
+                Assert.Equal($"The 'Binary' transfer format is not supported by this transport.{Environment.NewLine}Parameter name: transferFormat", ex.Message);
             }
         }
 
@@ -338,8 +334,11 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             Assert.Equal(assemblyVersion.InformationalVersion, userAgentHeader.Product.Version);
         }
 
-        [Fact]
-        public async Task SSETransportThrowsForInvalidTransferFormat()
+        [Theory]
+        [InlineData(TransferFormat.Binary)] // Binary not supported
+        [InlineData(TransferFormat.Text | TransferFormat.Binary)] // Multiple values not allowed
+        [InlineData((TransferFormat)42)] // Unexpected value
+        public async Task SSETransportThrowsForInvalidTransferFormat(TransferFormat transferFormat)
         {
             var mockHttpHandler = new Mock<HttpMessageHandler>();
             mockHttpHandler.Protected()
@@ -354,10 +353,10 @@ namespace Microsoft.AspNetCore.SignalR.Client.Tests
             {
                 var sseTransport = new ServerSentEventsTransport(httpClient);
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
-                    sseTransport.StartAsync(new Uri("http://fakeuri.org"), null, TransferFormat.Text | TransferFormat.Binary, connection: Mock.Of<IConnection>()));
+                    sseTransport.StartAsync(new Uri("http://fakeuri.org"), null, transferFormat, connection: Mock.Of<IConnection>()));
 
-                Assert.Contains("Invalid transfer mode.", exception.Message);
-                Assert.Equal("requestedTransferFormat", exception.ParamName);
+                Assert.Contains($"The '{transferFormat}' transfer format is not supported by this transport.", exception.Message);
+                Assert.Equal("transferFormat", exception.ParamName);
             }
         }
     }

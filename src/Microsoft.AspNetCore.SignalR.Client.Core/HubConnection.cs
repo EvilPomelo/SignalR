@@ -110,18 +110,8 @@ namespace Microsoft.AspNetCore.SignalR.Client
 
         private async Task StartAsyncCore()
         {
-            var transferFormatFeature = _connection.Features.Get<ITransferFormatFeature>();
-            if (transferFormatFeature == null)
-            {
-                transferFormatFeature = new TransferFormatFeature();
-                _connection.Features.Set(transferFormatFeature);
-            }
-
-            transferFormatFeature.TransferFormat = _protocol.TransferFormat;
-            await _connection.StartAsync();
+            await _connection.StartAsync(_protocol.TransferFormat);
             _needKeepAlive = _connection.Features.Get<IConnectionInherentKeepAliveFeature>() == null;
-
-            var actualTransferFormat = transferFormatFeature.TransferFormat;
 
             Log.HubProtocol(_logger, _protocol.Name);
 
@@ -597,11 +587,6 @@ namespace Microsoft.AspNetCore.SignalR.Client
             {
                 return _callback(parameters, _state);
             }
-        }
-
-        private class TransferFormatFeature : ITransferFormatFeature
-        {
-            public TransferFormat TransferFormat { get; set; }
         }
     }
 }

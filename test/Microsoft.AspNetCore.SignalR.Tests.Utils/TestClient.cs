@@ -141,12 +141,7 @@ namespace Microsoft.AspNetCore.SignalR.Tests
 
         public async Task<string> SendHubMessageAsync(HubMessage message)
         {
-            byte[] payload;
-            using (var ms = new MemoryStream())
-            {
-                _protocol.WriteMessage(message, ms);
-                payload = ms.ToArray();
-            }
+            var payload = _protocol.WriteToArray(message);
 
             await Connection.Application.Output.WriteAsync(payload);
             return message is HubInvocationMessage hubMessage ? hubMessage.InvocationId : null;

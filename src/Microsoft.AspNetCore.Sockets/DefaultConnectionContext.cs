@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Protocols;
 using Microsoft.AspNetCore.Sockets.Features;
+using Microsoft.AspNetCore.Sockets.Internal;
 using Microsoft.Extensions.Internal;
 
 namespace Microsoft.AspNetCore.Sockets
@@ -36,6 +37,7 @@ namespace Microsoft.AspNetCore.Sockets
             Application = application;
             ConnectionId = id;
             LastSeenUtc = DateTime.UtcNow;
+            SupportedFormats = TransferFormat.Binary | TransferFormat.Text;
 
             // PERF: This type could just implement IFeatureCollection
             Features = new FeatureCollection();
@@ -43,8 +45,8 @@ namespace Microsoft.AspNetCore.Sockets
             Features.Set<IConnectionMetadataFeature>(this);
             Features.Set<IConnectionIdFeature>(this);
             Features.Set<IConnectionTransportFeature>(this);
-            Features.Set<ITransferFormatFeature>(this);
             Features.Set<IConnectionHeartbeatFeature>(this);
+            Features.Set<ITransferFormatFeature>(this);
         }
 
         public CancellationTokenSource Cancellation { get; set; }
@@ -71,10 +73,9 @@ namespace Microsoft.AspNetCore.Sockets
 
         public override IDuplexPipe Transport { get; set; }
 
-        // By default, we assume the connection supports all transfer modes.
-        public TransferFormat TransportCapabilities { get; set; } = TransferFormat.Binary | TransferFormat.Text;
+        public TransferFormat SupportedFormats { get; set; }
 
-        public TransferFormat TransferFormat { get; set; }
+        public TransferFormat ActiveFormat { get; set; }
 
         public void OnHeartbeat(Action<object> action, object state)
         {
